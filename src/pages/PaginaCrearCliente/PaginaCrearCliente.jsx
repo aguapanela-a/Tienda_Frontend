@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import ClienteList from "../../components/ClienteList/ClienteList";
 import { useNavigate, useLocation } from "react-router-dom";
+import Mensaje from "../../components/Mensaje/Mensaje";
 
 export default function PaginaCrearCliente() {
   const [nombreNuevo, setNombreNuevo] = useState("");
   const [tipoCliente, setTipoCliente] = useState("");
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [mensaje, setMensaje] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,7 +38,7 @@ export default function PaginaCrearCliente() {
         const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
         const res = await fetch(
-          `${baseUrl}/negocio/clientes?search=${encodeURIComponent(nombreNuevo)}`,
+          `${baseUrl}/clientes?search=${encodeURIComponent(nombreNuevo)}`,
           { signal: controller.signal }
         );
 
@@ -74,12 +76,12 @@ export default function PaginaCrearCliente() {
 
   const handleGuardarCliente = async () => {
     if (!nombreNuevo || !tipoCliente) {
-      alert("Debes seleccionar un tipo y escribir un nombre");
+      setMensaje({ tipo: "error", texto: "Debes seleccionar un tipo y escribir un nombre" });
       return;
     }
 
     if (nombreCambio && nombreExistente) {
-      alert("Ese nombre ya existe");
+      setMensaje({ tipo: "error", texto: "Ese nombre ya existe" });
       return;
     }
 
@@ -87,7 +89,7 @@ export default function PaginaCrearCliente() {
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
       if (modo === "editar") {
-        const res = await fetch(`${baseUrl}/negocio/actualizarCliente`, {
+        const res = await fetch(`${baseUrl}/clientes/actualizar`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -100,20 +102,19 @@ export default function PaginaCrearCliente() {
         const data = await res.json();
 
         if (!res.ok) {
-          console.error("Error backend:", data);
-          alert(data.error || "No se pudo actualizar el cliente");
-        }else{
-            const clienteNormalizado = {
-              ...data,
-              id: data.id || data.id_cliente,
-            };
-
-            navigate("/pagina-cliente", {
-              state: { cliente: clienteNormalizado },
-            });
+          setMensaje({ tipo: "error", texto: data.mensaje || "No se pudo actualizar el cliente" });
+          return;
         }
+
+        const clienteNormalizado = {
+          ...data,
+          id: data.id || data.id_cliente,
+        };
+
+        setMensaje({ tipo: "exito", texto: "Cliente actualizado correctamente" });
+        setTimeout(() => navigate("/pagina-cliente", { state: { cliente: clienteNormalizado } }), 1500);
       } else {
-        const res = await fetch(`${baseUrl}/negocio/agregarCliente`, {
+        const res = await fetch(`${baseUrl}/clientes/registrar`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -124,23 +125,34 @@ export default function PaginaCrearCliente() {
 
         const data = await res.json();
 
+        if (!res.ok) {
+          setMensaje({ tipo: "error", texto: data.mensaje || "No se pudo crear el cliente" });
+          return;
+        }
+
         const clienteNormalizado = {
           ...data,
           id: data.id || data.id_cliente,
         };
 
-        navigate("/pagina-cliente", {
-          state: { cliente: clienteNormalizado },
-        });
+        setMensaje({ tipo: "exito", texto: "Cliente creado correctamente" });
+        setTimeout(() => navigate("/pagina-cliente", { state: { cliente: clienteNormalizado } }), 1500);
       }
     } catch (err) {
       console.error(err);
-      alert("Error al guardar cliente");
+      setMensaje({ tipo: "error", texto: "Error al conectar con el servidor" });
     }
   };
 
   return (
     <div style={styles.container}>
+      {mensaje && (
+        <Mensaje
+          tipo={mensaje.tipo}
+          texto={mensaje.texto}
+          onClose={() => setMensaje(null)}
+        />
+      )}
       {/* 🔙 Volver */}
       <button onClick={() => navigate(-1)} style={styles.backBtn}>
         ←
@@ -193,16 +205,18 @@ export default function PaginaCrearCliente() {
             Frecuente
           </div>
 
-          <div
-            style={{
-              ...styles.radioBadge,
-              backgroundColor:
-                tipoCliente === "invitado" ? "#f59e0b" : "#334155",
-            }}
-            onClick={() => setTipoCliente("invitado")}
-          >
-            Invitado
-          </div>
+          {clienteEditar?.tipo_cliente !== "frecuente" && (
+            <div
+              style={{
+                ...styles.radioBadge,
+                backgroundColor:
+                  tipoCliente === "invitado" ? "#f59e0b" : "#334155",
+              }}
+              onClick={() => setTipoCliente("invitado")}
+            >
+              Invitado
+            </div>
+          )}
         </div>
 
         {/* Botón */}

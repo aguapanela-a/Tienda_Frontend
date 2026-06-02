@@ -4,6 +4,7 @@ import ClienteBadge from "../../components/ClienteBadge/ClienteBadge";
 import MontoList from "../../components/MontoList/MontoList";
 import MontoDetalleModal from "../../components/MontoDetalleModal/MontoDetalleModal";
 import MontoTotal from "../../components/MontoTotal/MontoTotal";
+import Mensaje from "../../components/Mensaje/Mensaje";
 
 export default function PaginaCliente() {
   const location = useLocation();
@@ -15,19 +16,31 @@ export default function PaginaCliente() {
   const [montoSeleccionado, setMontoSeleccionado] = useState(null);
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [mostrarEliminar, setMostrarEliminar] = useState(false);
+  const [mensaje, setMensaje] = useState(null);
 
   
   useEffect(() => {
     if (!cliente?.id) return;
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-    fetch(`${baseUrl}/negocio/montos?cliente_id=${cliente.id}`)
-      .then((res) => res.json())
+    fetch(`${baseUrl}/montos/${cliente.id}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorData = await res.json();
+          setMensaje({ tipo: "error", texto: errorData.mensaje || "No se pudieron cargar los montos" });
+          return;
+        }
+        return res.json();
+      })
       .then((data) => {
+        if (!data) return;
         setMontos(data.movimientos || []);
         setTotal(data.total || 0);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error(err);
+        setMensaje({ tipo: "error", texto: "Error al conectar con el servidor" });
+      });
   }, [cliente]);
 
   if (!cliente) {
@@ -57,26 +70,38 @@ export default function PaginaCliente() {
     try {
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-      await fetch(`${baseUrl}/negocio/pagarTodo`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const resPago = await fetch(`${baseUrl}/clientes/pagarTodo`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id_cliente: cliente.id,
+          nombre: cliente.nombre,
           tipo_cliente: cliente.tipo_cliente,
         }),
       });
 
-      const res = await fetch(
-        `${baseUrl}/negocio/montos?cliente_id=${cliente.id}`
-      );
-      const data = await res.json();
+      if (!resPago.ok) {
+        const errorData = await resPago.json();
+        setMensaje({ tipo: "error", texto: errorData.mensaje || "No se pudo realizar el pago total" });
+        return;
+      }
+
+      const pagoData = await resPago.json();
+
+      const resMontos = await fetch(`${baseUrl}/montos/${cliente.id}`);
+      if (!resMontos.ok) {
+        const errorData = await resMontos.json();
+        setMensaje({ tipo: "error", texto: errorData.mensaje || "No se pudieron actualizar los montos" });
+        return;
+      }
+      const data = await resMontos.json();
 
       setMontos(data.movimientos || []);
       setTotal(data.total || 0);
+      setMensaje({ tipo: "exito", texto: pagoData.mensaje || "Pago total realizado con exito" });
     } catch (err) {
       console.error(err);
+      setMensaje({ tipo: "error", texto: "Error al conectar con el servidor" });
     } finally {
       setMostrarConfirmacion(false);
     }
@@ -86,17 +111,27 @@ export default function PaginaCliente() {
     try {
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-      await fetch(
-        `${baseUrl}/negocio/eliminarCliente?cliente_id=${cliente.id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const res = await fetch(`${baseUrl}/clientes/eliminar`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_cliente: cliente.id,
+          nombre: cliente.nombre,
+          tipo_cliente: cliente.tipo_cliente,
+        }),
+      });
 
-      // 🔥 Redirigir al home después de eliminar
-      navigate("/");
+      if (!res.ok) {
+        const errorData = await res.json();
+        setMensaje({ tipo: "error", texto: errorData.mensaje || "No se pudo eliminar el cliente" });
+        return;
+      }
+
+      setMensaje({ tipo: "exito", texto: "Cliente eliminado correctamente" });
+      setTimeout(() => navigate("/"), 1500);
     } catch (err) {
       console.error(err);
+      setMensaje({ tipo: "error", texto: "Error al conectar con el servidor" });
     } finally {
       setMostrarEliminar(false);
     }
@@ -104,6 +139,13 @@ export default function PaginaCliente() {
 
   return (
     <div style={styles.container}>
+      {mensaje && (
+        <Mensaje
+          tipo={mensaje.tipo}
+          texto={mensaje.texto}
+          onClose={() => setMensaje(null)}
+        />
+      )}
       <div style={styles.card}>
         {/* Header */}
         <div style={styles.topBar}>

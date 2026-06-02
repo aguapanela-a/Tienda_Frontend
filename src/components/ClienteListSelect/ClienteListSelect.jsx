@@ -20,7 +20,7 @@ export default function ClienteListSelect({ searchTerm }) {
 
         setLoading(true);
         const res = await fetch(
-          `${baseUrl}/negocio/clientes?search=${encodeURIComponent(searchTerm)}`,
+          `${baseUrl}/clientes?search=${encodeURIComponent(searchTerm)}`,
           { signal: controller.signal }
         );
         const data = await res.json();

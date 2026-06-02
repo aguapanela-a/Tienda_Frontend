@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import MontoBadge from "../../components/MontoBadge/MontoBadge";
+import Mensaje from "../../components/Mensaje/Mensaje";
 
 export default function PaginaMonto() {
   const location = useLocation();
@@ -12,6 +13,7 @@ export default function PaginaMonto() {
 
   const [valor, setValor] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [mensaje, setMensaje] = useState(null);
 
   useEffect(() => {
     if (esEdicion && monto) {
@@ -32,71 +34,61 @@ export default function PaginaMonto() {
 
   const handleAceptar = async () => {
     if (!valor) {
-      alert("Debes ingresar un valor");
+      setMensaje({ tipo: "error", texto: "Debes ingresar un valor" });
       return;
     }
 
-    let descripcionFinal = descripcion;
+    const valorNumerico = Number(valor);
+    const hoy = new Date();
+    const fecha = `${String(hoy.getDate()).padStart(2, "0")}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${hoy.getFullYear()}`;
 
+    let descripcionFinal = descripcion;
     if (tipo === "abono") {
-      const fecha = new Date().toISOString().split("T")[0];
-      const valorNumerico = Number(valor);
-      const valorFormateado = formatCurrency(valorNumerico);
-      descripcionFinal = `Abonó ${valorFormateado} el ${fecha}`;
+      descripcionFinal = `Abonó ${formatCurrency(valorNumerico)} el ${fecha}`;
     }
 
     try {
-      const fecha = new Date().toISOString().split("T")[0];
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-      const valorNumerico = Number(valor);
-      const valorFinal =
-        tipo === "abono"
-          ? -Math.abs(valorNumerico)
-          : Math.abs(valorNumerico);
-
-      // 🔥 DIFERENCIA CLAVE
       const url = esEdicion
-        ? `${baseUrl}/negocio/actualizarMonto`
-        : `${baseUrl}/negocio/agregarMonto`;
+        ? `${baseUrl}/montos/actualizar/${monto.id_monto}`
+        : `${baseUrl}/clientes/montos`;
 
-      const method = esEdicion ? "PUT" : "POST";
-
-      const body = esEdicion
-        ? {
-            id_monto: monto.id_monto,
-            id_cliente: cliente_id,
-            descripcion: descripcionFinal,
-            valor: valorFinal,
-            tipo_monto: tipo,
-            fecha: fecha,
-          }
-        : {
-            cliente_id: cliente_id,
-            descripcion: descripcionFinal,
-            valor: valorFinal,
-            tipo: tipo,
-            fecha: fecha,
-            tipo_monto: tipo,
-          };
-
-      await fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
+      const res = await fetch(url, {
+        method: esEdicion ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_cliente: cliente_id,
+          descripcion: descripcionFinal,
+          valor: Math.abs(valorNumerico),
+          tipo_monto: tipo,
+          fecha: fecha,
+        }),
       });
 
-      navigate(-1);
+      if (!res.ok) {
+        const errorData = await res.json();
+        setMensaje({ tipo: "error", texto: errorData.mensaje || "No se pudo guardar el monto" });
+        return;
+      }
+
+      setMensaje({ tipo: "exito", texto: esEdicion ? "Monto actualizado correctamente" : "Monto guardado correctamente" });
+      setTimeout(() => navigate(-1), 1500);
     } catch (err) {
       console.error(err);
-      alert("Error al guardar monto");
+      setMensaje({ tipo: "error", texto: "Error al conectar con el servidor" });
     }
   };
 
   return (
     <div style={styles.container}>
+      {mensaje && (
+        <Mensaje
+          tipo={mensaje.tipo}
+          texto={mensaje.texto}
+          onClose={() => setMensaje(null)}
+        />
+      )}
       <div style={styles.card}>
         <h2 style={styles.title}>
           {esEdicion ? "Editar" : "Nuevo"} {tipoLabel}
