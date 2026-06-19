@@ -173,7 +173,7 @@ export default function PaginaCliente() {
       <div style={styles.card}>
         {/* Header */}
         <div style={styles.topBar}>
-          <button onClick={() => navigate("/")} style={styles.backBtn}>
+          <button onClick={() => navigate("/pagina-principal")} style={styles.backBtn}>
             ←
           </button>
           <button
