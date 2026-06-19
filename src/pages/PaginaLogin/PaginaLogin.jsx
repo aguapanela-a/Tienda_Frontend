@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Mensaje from "../../components/Mensaje/Mensaje";
+import ChangePassword from "../../components/ChangePassword/ChangePassword";
 
 export default function PaginaLogin() {
     const [number, setNumber] = useState("");
@@ -8,6 +9,7 @@ export default function PaginaLogin() {
     const navigate = useNavigate();
     const [mensaje, setMensaje] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [mostrarCambiarPassword, setMostrarCambiarPassword] = useState(false);
 
     const handleLogin = async () => {
         if (!number || !password) {
@@ -81,6 +83,13 @@ export default function PaginaLogin() {
                 />
             )}
 
+            {mostrarCambiarPassword && (
+                <ChangePassword 
+                    onClose={() => setMostrarCambiarPassword(false)} 
+                    setMensajeGlobal={setMensaje}
+                />
+            )}
+
             <div style={styles.card}>
                 <h1 style={styles.title}>Tienda Erick</h1>
                 <p style={styles.description}>
@@ -114,6 +123,13 @@ export default function PaginaLogin() {
                 >
                     {loading ? "Iniciando..." : "Entrar"}
                 </button>
+
+                <p 
+                    style={styles.forgotPassword} 
+                    onClick={() => setMostrarCambiarPassword(true)}
+                >
+                    ¿Cambiar contraseña?
+                </p>
             </div>
         </div>
     );
@@ -173,5 +189,13 @@ const styles = {
         fontWeight: "600",
         fontSize: "16px",
         marginTop: "10px",
+    },
+    forgotPassword: {
+        fontSize: "14px",
+        color: "#94a3b8",
+        textAlign: "center",
+        marginTop: "5px",
+        cursor: "pointer",
+        textDecoration: "underline",
     },
 };
