@@ -41,7 +41,14 @@ export default function PaginaCrearCliente() {
 
         const res = await fetch(
           `${baseUrl}/clientes?search=${encodeURIComponent(nombreNuevo)}`,
-          { signal: controller.signal }
+          {
+            method: "GET",
+            signal: controller.signal,
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+          }
         );
 
         const data = await res.json();
@@ -94,7 +101,10 @@ export default function PaginaCrearCliente() {
       if (modo === "editar") {
         const res = await fetch(`${baseUrl}/clientes/actualizar`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          },
           body: JSON.stringify({
             id_cliente: clienteEditar.id_cliente || clienteEditar.id,
             nombre: nombreNuevo,
@@ -119,7 +129,10 @@ export default function PaginaCrearCliente() {
       } else {
         const res = await fetch(`${baseUrl}/clientes/registrar`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          },
           body: JSON.stringify({
             nombre: nombreNuevo,
             tipo_cliente: tipoCliente,

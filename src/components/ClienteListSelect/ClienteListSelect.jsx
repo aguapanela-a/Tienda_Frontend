@@ -21,7 +21,14 @@ export default function ClienteListSelect({ searchTerm }) {
         setLoading(true);
         const res = await fetch(
           `${baseUrl}/clientes?search=${encodeURIComponent(searchTerm)}`,
-          { signal: controller.signal }
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            signal: controller.signal
+          }
         );
         const data = await res.json();
         setClientes(data);

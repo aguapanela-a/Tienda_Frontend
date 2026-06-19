@@ -18,12 +18,21 @@ export default function PaginaCliente() {
   const [mostrarEliminar, setMostrarEliminar] = useState(false);
   const [mensaje, setMensaje] = useState(null);
 
-  
+
   useEffect(() => {
     if (!cliente?.id) return;
     const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-    fetch(`${baseUrl}/montos/${cliente.id}`)
+    fetch(
+      `${baseUrl}/montos/${cliente.id}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+      }
+    )
       .then(async (res) => {
         if (!res.ok) {
           const errorData = await res.json();
@@ -72,7 +81,10 @@ export default function PaginaCliente() {
 
       const resPago = await fetch(`${baseUrl}/clientes/pagarTodo`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify({
           id_cliente: cliente.id,
           nombre: cliente.nombre,
@@ -88,7 +100,16 @@ export default function PaginaCliente() {
 
       const pagoData = await resPago.json();
 
-      const resMontos = await fetch(`${baseUrl}/montos/${cliente.id}`);
+      const resMontos = await fetch(
+        `${baseUrl}/montos/${cliente.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          },
+        }
+      );
       if (!resMontos.ok) {
         const errorData = await resMontos.json();
         setMensaje({ tipo: "error", texto: errorData.mensaje || "No se pudieron actualizar los montos" });
@@ -113,7 +134,10 @@ export default function PaginaCliente() {
 
       const res = await fetch(`${baseUrl}/clientes/eliminar`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify({
           id_cliente: cliente.id,
           nombre: cliente.nombre,
@@ -190,7 +214,7 @@ export default function PaginaCliente() {
               ...monto,
               cliente_id: cliente.id,
             })
-          }        />
+          } />
         {mostrarEliminar && (
           <div style={styles.modalOverlay}>
             <div style={styles.modal}>

@@ -17,7 +17,7 @@ export default function PaginaMonto() {
 
   useEffect(() => {
     if (esEdicion && monto) {
-      setValor(Math.abs(monto.valor)); 
+      setValor(Math.abs(monto.valor));
       setDescripcion(monto.descripcion || "");
     }
   }, [esEdicion, monto]);
@@ -56,7 +56,10 @@ export default function PaginaMonto() {
 
       const res = await fetch(url, {
         method: esEdicion ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify({
           id_cliente: cliente_id,
           descripcion: descripcionFinal,
