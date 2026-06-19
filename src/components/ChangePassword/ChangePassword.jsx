@@ -40,7 +40,15 @@ export default function ChangePassword({ onClose, setMensajeGlobal }) {
                     })
                 }
             );
-            const data = await res.json();
+            const textResponse = await res.text();
+            let data = {};
+            try {
+                data = JSON.parse(textResponse);
+            } catch (e) {
+                // Si falla el parseo, significa que el backend envió texto plano
+                data = { mensaje: textResponse };
+            }
+
             if (!res.ok) {
                 setMensajeGlobal({ tipo: "error", texto: data.mensaje || "Error al cambiar contraseña" });
                 return;
