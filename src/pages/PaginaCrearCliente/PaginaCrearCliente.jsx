@@ -31,6 +31,8 @@ export default function PaginaCrearCliente() {
 
     const controller = new AbortController();
 
+
+    //peticion de busqueda de clientes con debounce de 300ms
     const timeoutId = setTimeout(async () => {
       try {
         setLoading(true);
@@ -60,7 +62,7 @@ export default function PaginaCrearCliente() {
   const nombreCambio =
     modo === "crear" ||
     nombreNuevo.toLowerCase() !==
-      (clienteEditar?.nombre || "").toLowerCase();
+    (clienteEditar?.nombre || "").toLowerCase();
 
   const nombreExistente = clientes.some((c) => {
     const mismoNombre =
@@ -69,7 +71,7 @@ export default function PaginaCrearCliente() {
     const esMismoCliente =
       modo === "editar" &&
       (c.id_cliente || c.id) ===
-        (clienteEditar?.id_cliente || clienteEditar?.id);
+      (clienteEditar?.id_cliente || clienteEditar?.id);
 
     return mismoNombre && !esMismoCliente;
   });
@@ -88,6 +90,7 @@ export default function PaginaCrearCliente() {
     try {
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
+      //peticion de actualizacion de clientes
       if (modo === "editar") {
         const res = await fetch(`${baseUrl}/clientes/actualizar`, {
           method: "PUT",
@@ -187,8 +190,8 @@ export default function PaginaCrearCliente() {
             {loading
               ? "Validando..."
               : nombreCambio && nombreExistente
-              ? "⚠️ Este nombre ya existe"
-              : "✔ Nombre válido"}
+                ? "⚠️ Este nombre ya existe"
+                : "✔ Nombre válido"}
           </div>
         )}
 
