@@ -56,12 +56,16 @@ export default function PaginaCliente() {
     return <p style={{ color: "#f1f5f9" }}>No hay cliente seleccionado</p>;
   }
 
+  //aqui se le está enviando el tipo_cliente al momento de crear un abono o deuda, 
+  //la idea es que al momento de crear el monto, se le envíe el tipo de cliente para que el backend sepa que tipo de cliente es, 
+  //en caso contrario, no se sabra y dara error
   const handleAñadirMonto = () => {
     console.log("🟢 Cliente ID:", cliente.id);
     navigate("/pagina-monto", {
       state: {
         cliente_id: cliente.id,
         tipo: "deuda",
+        tipo_cliente: cliente.tipo_cliente,
       },
     });
   };
@@ -71,6 +75,7 @@ export default function PaginaCliente() {
       state: {
         cliente_id: cliente.id,
         tipo: "abono",
+        tipo_cliente: cliente.tipo_cliente,
       },
     });
   };
@@ -245,6 +250,7 @@ export default function PaginaCliente() {
         {montoSeleccionado && (
           <MontoDetalleModal
             monto={montoSeleccionado}
+            cliente={cliente}
             onClose={() => setMontoSeleccionado(null)}
           />
         )}

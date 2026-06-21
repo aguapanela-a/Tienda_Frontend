@@ -7,7 +7,10 @@ export default function PaginaMonto() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { cliente_id, tipo, modo, monto } = location.state || {};
+  // el locatiopn sirve para obtener los datos de la pagina anterior, por ejemplo: cliente_id, tipo, modo, monto
+  // y el state sirve para pasar datos entre paginas de la navegacion de react-router, 
+  // es como si fuera una caja donde guardamos cosas y las pasamos a la siguiente pagina
+  const { cliente_id, tipo, modo, monto, tipo_cliente } = location.state || {};
 
   const esEdicion = modo === "editar";
 
@@ -60,12 +63,15 @@ export default function PaginaMonto() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("token")}`
         },
+        //TODO: HACER QUE TAMBIÉN ENVÍE EL TIPO DE CLIENTE
+        // (hice cambios en pagina cliente y monto detalle modal, para que se pueda enviar el tipo_cliente)
         body: JSON.stringify({
           id_cliente: cliente_id,
           descripcion: descripcionFinal,
           valor: Math.abs(valorNumerico),
           tipo_monto: tipo,
           fecha: fecha,
+          tipo_cliente: tipo_cliente,
         }),
       });
 

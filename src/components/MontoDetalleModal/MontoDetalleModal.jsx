@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function MontoDetalleModal({ monto, onClose }) {
+export default function MontoDetalleModal({ monto, cliente, onClose }) {
   const navigate = useNavigate();
 
   if (!monto) return null;
@@ -16,6 +16,7 @@ export default function MontoDetalleModal({ monto, onClose }) {
         monto: monto,
         cliente_id: monto.cliente_id,
         tipo: monto.tipo_monto,
+        tipo_cliente: cliente.tipo_cliente,
       },
     });
   };
