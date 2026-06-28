@@ -5,10 +5,10 @@ export async function refreshToken() {
     const resRefreshToken = await fetch(`${baseUrl}/auth/refrescarToken`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: JSON.stringify({
-            refreshToken: localStorage.getItem("refreshToken"),
+        body: new URLSearchParams({
+            tokenRefresh: localStorage.getItem("refreshToken"),
         }),
     });
     const dataRefreshToken = await resRefreshToken.json();
