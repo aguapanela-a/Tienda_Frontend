@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { refreshToken } from "../../services/apiClient";
 
 export default function ClienteListSelect({ searchTerm }) {
   const [clientes, setClientes] = useState([]);
@@ -31,7 +32,32 @@ export default function ClienteListSelect({ searchTerm }) {
           }
         );
         const data = await res.json();
+
+        //si devuelve un error 401 no autoprizado se debe intentar hacer un refresh token con el refresh token
+        //si el refresh token es invalido se debe limpiar el localStorage y redirigir al usuario a la pagina de login
+        //si el refresh token es valido se debe hacer la peticion de nuevo
+
+        if (data.estado === 401) {
+          //ejecuta la función refreshToken: la cual si es exitosa guarda el nuevo access token en el localStorage y retorna el token
+          //si no es exitosa limpia el localStorage y redirige al usuario a la pagina de login
+          const token = await refreshToken();
+
+          //si el refresh token es valido y se guardó el access token en el localStorage 
+          //se debe hacer la peticion de nuevo
+          if (token) {
+            fetchClientes();
+          }
+
+          //si el refresh token es invalido y no se guardó el access token en el localStorage 
+          //se debe limpiar el localStorage y redirigir al usuario a la pagina de login 
+          //(cosa que ya hace refresToken())
+
+          return;  //importante retornar para no continuar con el codigo
+        }
+
+        //si no devuelve un error 401
         setClientes(data);
+
       } catch (err) {
         if (err.name !== "AbortError") console.error(err);
       } finally {

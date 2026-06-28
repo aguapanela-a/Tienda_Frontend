@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import MontoBadge from "../../components/MontoBadge/MontoBadge";
 import Mensaje from "../../components/Mensaje/Mensaje";
+import { refreshToken } from "../../services/apiClient";
 
 export default function PaginaMonto() {
   const location = useLocation();
@@ -74,6 +75,18 @@ export default function PaginaMonto() {
           tipo_cliente: tipo_cliente,
         }),
       });
+
+      const data = await res.json();
+
+      if (data.estado === 401) {
+        const token = await refreshToken();
+
+        if (token) {
+          handleAceptar();
+        }
+
+        return;
+      }
 
       if (!res.ok) {
         const errorData = await res.json();

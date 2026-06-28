@@ -55,9 +55,15 @@ export default function PaginaLogin() {
             }
 
             //almacenar el token, el nombre y el id del usuario en localStorage
-            localStorage.setItem("token", data.token);
+            localStorage.setItem("token", data.accessToken);
+            localStorage.setItem("refreshToken", data.refreshToken);
             localStorage.setItem("nombre", data.nombre);
             localStorage.setItem("id", data.id);
+
+
+            //TODO -Z hacer en cada petición que cuando llegue un 401 no autorizado, se intente refrescar el token hacia 
+            //"${baseUrl}/auth/refrescarToken" POST con el refresh token. Si el refresh token es invalido, se debe limpiar el localStorage y redirigir al usuario a la pagina de login.
+
 
             //mensaje de bienvenida
             setMensaje({ tipo: "exito", texto: "¡Bienvenido!" });
@@ -84,8 +90,8 @@ export default function PaginaLogin() {
             )}
 
             {mostrarCambiarPassword && (
-                <ChangePassword 
-                    onClose={() => setMostrarCambiarPassword(false)} 
+                <ChangePassword
+                    onClose={() => setMostrarCambiarPassword(false)}
                     setMensajeGlobal={setMensaje}
                 />
             )}
@@ -124,8 +130,8 @@ export default function PaginaLogin() {
                     {loading ? "Iniciando..." : "Entrar"}
                 </button>
 
-                <p 
-                    style={styles.forgotPassword} 
+                <p
+                    style={styles.forgotPassword}
                     onClick={() => setMostrarCambiarPassword(true)}
                 >
                     ¿Cambiar contraseña?

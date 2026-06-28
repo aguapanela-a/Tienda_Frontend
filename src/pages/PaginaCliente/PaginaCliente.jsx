@@ -5,6 +5,7 @@ import MontoList from "../../components/MontoList/MontoList";
 import MontoDetalleModal from "../../components/MontoDetalleModal/MontoDetalleModal";
 import MontoTotal from "../../components/MontoTotal/MontoTotal";
 import Mensaje from "../../components/Mensaje/Mensaje";
+import { refreshToken } from "../../services/apiClient";
 
 export default function PaginaCliente() {
   const location = useLocation();
@@ -34,6 +35,24 @@ export default function PaginaCliente() {
       }
     )
       .then(async (res) => {
+        //401 no autorizado, se debe intentar hacer un refresh token y volver a intentar 
+        if (res.status === 401) {
+          const token = await refreshToken();
+          if (token) {
+            return fetch(
+              `${baseUrl}/montos/${cliente.id}`,
+              {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+                },
+              }
+            );
+          }
+          return;
+        }
+
         if (!res.ok) {
           const errorData = await res.json();
           setMensaje({ tipo: "error", texto: errorData.mensaje || "No se pudieron cargar los montos" });
@@ -97,6 +116,9 @@ export default function PaginaCliente() {
         }),
       });
 
+
+
+
       if (!resPago.ok) {
         const errorData = await resPago.json();
         setMensaje({ tipo: "error", texto: errorData.mensaje || "No se pudo realizar el pago total" });
@@ -104,6 +126,10 @@ export default function PaginaCliente() {
       }
 
       const pagoData = await resPago.json();
+
+
+      //si no devuelve un error 401, se debe continuar con el codigo
+      //se hace la peticion de los montos
 
       const resMontos = await fetch(
         `${baseUrl}/montos/${cliente.id}`,
@@ -115,12 +141,29 @@ export default function PaginaCliente() {
           },
         }
       );
+
       if (!resMontos.ok) {
         const errorData = await resMontos.json();
         setMensaje({ tipo: "error", texto: errorData.mensaje || "No se pudieron actualizar los montos" });
         return;
       }
       const data = await resMontos.json();
+
+      //si devuelve un error 401 no autoprizado se debe intentar hacer un refresh token con el refresh token
+      //si el refresh token es invalido se debe limpiar el localStorage y redirigir al usuario a la pagina de login
+      //si el refresh token es valido se debe hacer la peticion de nuevo
+
+      if (pagoData.estado === 401 || data.estado === 401) {
+
+        const token = await refreshToken();
+
+        if (token) {
+          ejecutarPagoTotal();
+        }
+
+        return;
+      }
+
 
       setMontos(data.movimientos || []);
       setTotal(data.total || 0);
@@ -149,6 +192,17 @@ export default function PaginaCliente() {
           tipo_cliente: cliente.tipo_cliente,
         }),
       });
+
+      if (res.status === 401) {
+        const token = await refreshToken();
+
+        if (token) {
+          eliminarCliente();
+        }
+
+        return;
+      }
+
 
       if (!res.ok) {
         const errorData = await res.json();

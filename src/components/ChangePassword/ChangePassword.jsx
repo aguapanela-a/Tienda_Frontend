@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+
 export default function ChangePassword({ onClose, setMensajeGlobal }) {
     const [telefono, setTelefono] = useState("");
     const [contrasenaVieja, setContrasenaVieja] = useState("");
@@ -67,7 +68,7 @@ export default function ChangePassword({ onClose, setMensajeGlobal }) {
         <div style={styles.modalOverlay}>
             <div style={styles.modal}>
                 <h2 style={styles.title}>Cambiar Contraseña</h2>
-                
+
                 <input
                     type="number"
                     placeholder="Número de teléfono"
@@ -75,7 +76,7 @@ export default function ChangePassword({ onClose, setMensajeGlobal }) {
                     onChange={(e) => setTelefono(e.target.value)}
                     style={styles.input}
                 />
-                
+
                 <input
                     type="password"
                     placeholder="Contraseña actual"
@@ -101,15 +102,15 @@ export default function ChangePassword({ onClose, setMensajeGlobal }) {
                 />
 
                 <div style={styles.buttonsContainer}>
-                    <button 
-                        style={styles.cancelButton} 
+                    <button
+                        style={styles.cancelButton}
                         onClick={onClose}
                         disabled={loading}
                     >
                         Cancelar
                     </button>
-                    <button 
-                        style={{...styles.submitButton, opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer"}} 
+                    <button
+                        style={{ ...styles.submitButton, opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}
                         onClick={handleSubmit}
                         disabled={loading}
                     >

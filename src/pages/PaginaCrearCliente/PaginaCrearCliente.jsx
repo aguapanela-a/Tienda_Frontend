@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import ClienteList from "../../components/ClienteList/ClienteList";
 import { useNavigate, useLocation } from "react-router-dom";
 import Mensaje from "../../components/Mensaje/Mensaje";
+import { refreshToken } from "../../services/apiClient";
 
 export default function PaginaCrearCliente() {
   const [nombreNuevo, setNombreNuevo] = useState("");
@@ -52,6 +53,17 @@ export default function PaginaCrearCliente() {
         );
 
         const data = await res.json();
+
+        if (data.estado === 401) {
+          const token = await refreshToken();
+
+          if (token) {
+            fetchClientes();
+          }
+
+          return;
+        }
+
         setClientes(data);
       } catch (err) {
         if (err.name !== "AbortError") console.error(err);
@@ -114,6 +126,17 @@ export default function PaginaCrearCliente() {
 
         const data = await res.json();
 
+        if (data.estado === 401) {
+          const token = await refreshToken();
+
+          if (token) {
+            handleGuardarCliente();
+          }
+
+          return;
+        }
+
+
         if (!res.ok) {
           setMensaje({ tipo: "error", texto: data.mensaje || "No se pudo actualizar el cliente" });
           return;
@@ -140,6 +163,16 @@ export default function PaginaCrearCliente() {
         });
 
         const data = await res.json();
+
+        if (data.estado === 401) {
+          const token = await refreshToken();
+
+          if (token) {
+            handleGuardarCliente();
+          }
+
+          return;
+        }
 
         if (!res.ok) {
           setMensaje({ tipo: "error", texto: data.mensaje || "No se pudo crear el cliente" });
